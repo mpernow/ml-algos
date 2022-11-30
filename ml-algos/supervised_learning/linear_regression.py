@@ -97,7 +97,7 @@ class LassoRegression:
         lam=1
     ):
         """
-        Initialises the beta_hat parameter to None and the regularisation parameter to specified.
+        Initialises the beta_hat parameter to None and the regularisation parameter to the specified value.
 
         Args:
             lam (float, default=1): The regularisation parameter
@@ -122,7 +122,7 @@ class LassoRegression:
             num_epochs        (int): Number of epochs to train for
             learning_rate   (float): Learning rate during training
         """
-        b = np.random.uniform(-1., 1., (X.shape[0], ))
+        b = np.random.uniform(-1., 1., (X.shape[1] + 1, ))
         for _ in range(num_epochs):
             y_hat = X @ b[1:] + b[0]
             d = y_hat - y
