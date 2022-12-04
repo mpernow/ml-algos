@@ -122,10 +122,13 @@ class LassoRegression:
             num_epochs        (int): Number of epochs to train for
             learning_rate   (float): Learning rate during training
         """
+        # Initialise parameters
         b = np.random.uniform(-1., 1., (X.shape[1] + 1, ))
+        # Train using gradient descent
         for _ in range(num_epochs):
             y_hat = X @ b[1:] + b[0]
             d = y_hat - y
+            # Regularise with L1 norm, set the regularisation of the intercept to zero
             reg_term = np.sign(b)
             reg_term[0] = 0
             b = b - learning_rate*(np.insert(X,0,1,axis=1).T @ d + self.lam * reg_term)
