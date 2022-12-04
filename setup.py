@@ -10,7 +10,7 @@ with open(path.join(root_dir, 'requirements.txt'), 'r') as f:
     requirements = f.read().split('\n')
 
 setup(
-    name='ml-algos',
+    name='mlalgos',
     version=__version__,
     description='Implementation of some machine learning algorithms.',
     url='https://github.com/mpernow/ml-algos',
