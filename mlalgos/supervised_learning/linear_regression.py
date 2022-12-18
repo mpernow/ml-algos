@@ -1,6 +1,9 @@
 import numpy as np
 import scipy.linalg as spl
 
+from unsupervised_learning.pca import PCA
+
+
 class LinearRegression:
     def __init__(
         self
@@ -88,7 +91,7 @@ class RidgeRegression:
         
         Returns: np.array with the output for the given input data. Shape (n_samples)
         """
-        return X @ self.beta_hat[1:] + self.beta_hat
+        return X @ self.beta_hat[1:] + self.beta_hat[0]
 
 
 class LassoRegression:
@@ -114,7 +117,6 @@ class LassoRegression:
     ):
         """
         Computes the optimal parameters beta_hat for the given training data using lasso regression.
-        Note that the input ought to be standardised, since ridge regression is not invariant under scaling.
 
         Args:
             X            (np.array): Training data of shape (n_samples, n_features)
@@ -146,4 +148,55 @@ class LassoRegression:
         
         Returns: np.array with the output for the given input data. Shape (n_samples)
         """
-        return X @ self.beta_hat[1:] + self.beta_hat
+        return X @ self.beta_hat[1:] + self.beta_hat[0]
+
+
+class PrincipalComponentsRegression:
+    def __init__(
+        self,
+        n_components: int
+    ):
+        """
+        Initialises the beta_hat parameter to None and the number of principal components to the input value.
+        """
+        self.beta_hat = None
+        self.n_components = n_components
+    
+    def fit(
+        self,
+        X: np.array,
+        y: np.array
+    ):
+        """
+        Computes the optimal parameters beta_hat for the specified number of principal components.
+        As when performing PCA, the input parameters are assumed to be centred.
+
+        Args:
+            X   (np.array): Training data of shape (n_samples, n_features)
+            y   (np.array): Target values for the training data with shape (n_samples)
+        """
+        pca = PCA(self.n_components)
+        Z = pca.fit(X)
+
+        beta_hat0 = np.mean(y)
+        y = y - beta_hat0
+        theta_hat = np.array([(Z[:,i] @ y) / (Z[:,i] @ Z[:,i]) for i in range(self.n_components)])
+
+        # Since we previously only had Z = X @ V, we need to form the V to use in predictions. Do this by pseudo-inverse
+        V = spl.pinv(X) @ Z
+        beta_hat = np.sum(np.array([theta_hat[i] @ V[:,i] for i in range(self.n_components)]), axis=0)
+        self.beta_hat = np.insert(beta_hat, 0, beta_hat0)
+    
+    def predict(
+        self,
+        X: np.array
+    ):
+        """
+        Predicts the output of the model for the given input features.
+
+        Args:
+            X   (np.array): Input data of shape (n_samples, n_features)
+
+        Returns: np.array with the output for the given input data. Shape (n_samples)
+        """
+        return X @ self.beta_hat[1:] + self.beta_hat[0]
