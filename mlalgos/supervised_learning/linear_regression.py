@@ -201,7 +201,7 @@ class PrincipalComponentsRegression:
         """
         return X @ self.beta_hat[1:] + self.beta_hat[0]
 
-class PartialLeastSquares:
+class PartialLeastSquaresRegression:
     def __init__(
         self,
         n_components: int
