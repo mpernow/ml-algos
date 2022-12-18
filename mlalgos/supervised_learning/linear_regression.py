@@ -200,3 +200,56 @@ class PrincipalComponentsRegression:
         Returns: np.array with the output for the given input data. Shape (n_samples)
         """
         return X @ self.beta_hat[1:] + self.beta_hat[0]
+
+class PartialLeastSquares:
+    def __init__(
+        self,
+        n_components: int
+    ):
+        """
+        Initialises the beta_hat parameter to None and the number of components to the input value.
+        """
+        self.beta_hat = None
+        self.n_components = n_components
+    
+    def fit(
+        self,
+        X: np.array,
+        y: np.array
+    ):
+        """
+        Computes the optimal parameters beta_hat using the partial least squares method, using the specified number of components.
+
+        Args:
+            X   (np.array): Training data of shape (n_samples, n_features)
+            y   (np.array): Target values for the training data with shape (n_samples)
+        """
+        ym = np.mean(y)
+        y = y - np.mean(y)
+        Xm = X
+        p = X.shape[1]
+        betam = np.zeros(p)
+        factor = np.eye(p)
+        for _ in range(self.n_components):
+            phi = Xm.T @ y
+            z = Xm @ phi
+            theta = z @ y / (z @ z)
+            Xm = Xm - np.outer(z, (z @ Xm))/(z @ z)
+            betam = betam + factor @ phi * theta
+            factor = factor @ (np.eye(p) - ((z @ Xm)/(z @ z)) @ phi)
+        self.beta_hat = np.insert(betam, 0, ym)
+        self.beta_hat = betam
+
+    def predict(
+        self,
+        X: np.array
+    ):
+        """
+        Predicts the output of the model for the given input features.
+
+        Args:
+            X   (np.array): Input data of shape (n_samples, n_features)
+
+        Returns: np.array with the output for the given input data. Shape (n_samples)
+        """
+        return X @ self.beta_hat[1:] + self.beta_hat[0]
