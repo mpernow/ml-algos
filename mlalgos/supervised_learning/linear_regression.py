@@ -42,6 +42,44 @@ class LinearRegression:
         return X @ self.beta_hat[1:] + self.beta_hat[0]
 
 
+class DummyRegression:
+    def __init__(
+        self
+    ):
+        self.mean = None
+
+    def fit(
+        self,
+        X: np.array,
+        y: np.array
+    ):
+        """
+        Compute the mean of the training data (only the y-values) for dummy regression.
+        The X array is included as an argument for compatibility.
+
+        Args:
+            X   (np.array): Training data of shape (n_samples, n_features)
+            y   (np.array): Target values for the training data with shape (n_samples)
+        """
+        self.mean = np.mean(y)
+    
+    def predict(
+        self,
+        X: np.array
+    ):
+        """
+        Predicts the output of the model for given input features.
+        The X array is only used for determining the shape of the output array.
+
+        Args: 
+            X   (np.array): Input data of shape (n_samples, n_features)
+        
+        Returns: np.array with the output for the given input data. Shape (n_samples)
+        """
+
+        return self.mean * np.ones(X.shape[0])
+
+
 class RidgeRegression:
     def __init__(
         self,
