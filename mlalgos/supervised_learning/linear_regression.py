@@ -1,7 +1,7 @@
 import numpy as np
 import scipy.linalg as spl
 
-from unsupervised_learning.pca import PCA
+from mlalgos.unsupervised_learning.pca import PCA
 
 
 class LinearRegression:
