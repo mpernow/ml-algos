@@ -1,18 +1,40 @@
 import numpy as np
 
 
-def standardise(
-    X: np.array
-) -> np.array:
-    """
-    Standardises the dataset X by computing the standard score z = (x - mean)/std.
+class StandardScaler:
+    def __init__(
+        self
+    ):
+        """
+        Initialises the mean and standard deviation parameters to 0 and 1 respectively.
+        """
+        self.mean = 1.
+        self.std = 0.
 
-    Args:
-        X   (np.array): The data to be standardised. Shape (n_samples, n_features)
-    
-    Returns:
-        z   (np.array): The standard scores. Shape (n_samples, n_features)
-    """
-    mean = np.mean(X, axis=0, keepdims=True)
-    std = np.std(X, axis=0, keepdims=True)
-    return (X - mean) / std
+    def fit(
+        self,
+        X_train: np.array
+    ):
+        """
+        Computes the mean and standard deviation of the dataset X_train.
+
+        Args:
+            X_train   (np.array): The data to compute the mean and std from. Shape (n_samples, n_features)
+        """
+        self.mean = np.mean(X_train, axis=0, keepdims=True)
+        self.std = np.std(X_train, axis=0, keepdims=True)
+
+    def transform(
+        self,
+        X: np.array
+    ) -> np.array:
+        """
+        Computes the transformation z = (X - mean)/std.
+
+        Args:
+            X   (np.array): The dataset to standardise. Shape (n_samples, n_features)
+        
+        Returns:
+            np.array:   The transformed data
+        """
+        return (X - self.mean) / self.std
