@@ -13,6 +13,6 @@ def standardise(
     Returns:
         z   (np.array): The standard scores. Shape (n_samples, n_features)
     """
-    mean = np.mean(X, axis=1, keepdims=True)
-    std = np.std(X, axis=1, keepdims=True)
+    mean = np.mean(X, axis=0, keepdims=True)
+    std = np.std(X, axis=0, keepdims=True)
     return (X - mean) / std
