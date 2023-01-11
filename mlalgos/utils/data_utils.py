@@ -70,6 +70,10 @@ def cross_validation_split(
         residuals['y'] = y[-n_residuals:]
         X = X[:-n_residuals]
         y = y[:-n_residuals]
+    else:
+        # If no residuals, set it to empty arrays for compatibility later
+        residuals['X'] = np.empty((1, X.shape[1]))
+        residuals['y'] = np.empty((1))
 
     X_split = np.split(X, k)
     y_split = np.split(y, k)
@@ -77,8 +81,8 @@ def cross_validation_split(
     for i in range(k):
         X_test, y_test = X_split[i], y_split[i]
         # Concatenate the rest into the training data, with the residual samples
-        X_train = np.concatenate((X_split[:i], X_split[i + 1:], residuals['X']), axis=0)
-        y_train = np.concatenate((y_split[:i], y_split[i + 1:], residuals['y']), axis=0)
+        X_train = np.concatenate(X_split[:i] + X_split[i + 1:] + [residuals['X']], axis=0)
+        y_train = np.concatenate(y_split[:i] + y_split[i + 1:] + [residuals['y']], axis=0)
         splits.append({'train': {'X': X_train, 'y': y_train},
                         'test': {'X': X_test, 'y': y_test}})
 
