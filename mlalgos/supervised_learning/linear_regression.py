@@ -277,7 +277,6 @@ class PartialLeastSquaresRegression:
             betam = betam + factor @ phi * theta
             factor = factor @ (np.eye(p) - ((z @ Xm)/(z @ z)) @ phi)
         self.beta_hat = np.insert(betam, 0, ym)
-        self.beta_hat = betam
 
     def predict(
         self,
