@@ -163,7 +163,8 @@ class LassoRegression:
             learning_rate   (float): Learning rate during training
         """
         # Initialise parameters
-        b = np.random.uniform(-1., 1., (X.shape[1] + 1, ))
+        p = X.shape[1]
+        b = np.random.uniform(-1./np.sqrt(p), 1./np.sqrt(p), (p + 1, ))
         # Train using gradient descent
         for _ in range(num_epochs):
             y_hat = X @ b[1:] + b[0]
@@ -222,7 +223,7 @@ class PrincipalComponentsRegression:
 
         # Since we previously only had Z = X @ V, we need to form the V to use in predictions. Do this by pseudo-inverse
         V = spl.pinv(X) @ Z
-        beta_hat = np.sum(np.array([theta_hat[i] @ V[:,i] for i in range(self.n_components)]), axis=0)
+        beta_hat = np.sum(np.array([theta_hat[i] * V[:,i] for i in range(self.n_components)]), axis=0)
         self.beta_hat = np.insert(beta_hat, 0, beta_hat0)
     
     def predict(
