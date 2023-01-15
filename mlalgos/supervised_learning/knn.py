@@ -3,7 +3,7 @@ import scipy.stats as sps
 from typing import Any
 
 
-class KNN:
+class kNN:
     """
     Implements a simple k nearest neighbours algorithm.
 
