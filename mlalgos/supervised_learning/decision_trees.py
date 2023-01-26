@@ -1,21 +1,37 @@
+from __future__ import annotations
 import copy
 import numpy as np
 import scipy.stats as sps
+from typing import Union, Callable, Tuple, List
 
 
 class Node:
     def __init__(
         self,
-        parent=None,
-        feature=None,
-        bound=None,
-        left=None,
-        right=None,
-        is_leaf=False,
-        val=None,
-        err=None,
-        N=None
+        parent: Node=None,
+        feature: int=None,
+        bound: float=None,
+        left: Node=None,
+        right: Node=None,
+        is_leaf: bool=False,
+        val: Union[int, float]=None,
+        err: float=None,
+        N: int=None
     ):
+        """
+        Represents a node in the decision tree.
+
+        Args:
+            parent            (Node): Parent node.
+            feature            (int): Index of the feature to split on.
+            bound            (float): Value to split on.
+            left              (Node): Left child node.
+            right             (Node): Right child node.
+            is_leaf           (bool): Whether the node is a leaf.
+            val  (Union[int, float]): Predicted value of the node if it were a leaf.
+            err              (float): Error incurred by prediction from this node.
+            N                  (int): Number of data points passing through this node.
+        """
         self.parent = parent
         self.feature = feature
         self.bound = bound
@@ -33,12 +49,21 @@ class Node:
 class DecisionTree:
     def __init__(
         self,
-        penalty_function,
-        ave_function,
-        max_depth=5,
-        min_samples=3
+        penalty_function: Callable,
+        ave_function: Callable,
+        max_depth: int=5,
+        min_samples: int=3
     ):
-        """Sets the stopping criteria and penalty function"""
+        """
+        Initialise the decision tree, setting the stopping criteria, penalty function, and averaging function.
+
+        Args:
+            penalty_function    (Callable): The error function to use.
+            ave_function        (Callable): The averaging function to use. Regression trees should have mean and
+                classification trees should have mode.
+            max_depth      (int, optional): Maximum depth allowed before stopping. Defaults to 5.
+            min_samples    (int, optional): Minimum number of samples allowed in a node before stopping. Defaults to 3.
+        """
         self.max_depth = max_depth
         self.min_samples = min_samples
         self.penalty_function = penalty_function
@@ -48,21 +73,40 @@ class DecisionTree:
     
     def split_inds(
         self,
-        X,
-        feature,
-        bound
-    ):
-        """Returns indices of the left and right split"""
+        X: np.array,
+        feature: int,
+        bound: float
+    ) -> Tuple[List[int], List[int]]:
+        """
+        Performs the split by returning the indices that are to the left and the indices that are to the right.
+
+        Args:
+            X (np.array): The input data as a Numpy array. Shape (n_samples, n_features)
+            feature (int): The index of the feature to split on
+            bound (float): The value of the chosen feature to split on
+
+        Returns:
+            Tuple[List[int], List[int]]: Lists of indices in the left side and the right side
+        """
         inds_left = np.where((X <= bound)[:,feature])[0]
         inds_right = np.where((X > bound)[:,feature])[0]
         return inds_left, inds_right
 
     def best_split(
         self,
-        X,
-        y
-    ):
-        """Returns the best index and bound for splitting"""
+        X: np.array,
+        y: np.array
+    ) -> Tuple[int, float]:
+        """
+        Computes the best split that minimises the error incurred
+
+        Args:
+            X (np.array): Input features. Shape (n_samples, n_features)
+            y (np.array): Target values. Shape (n_samples)
+
+        Returns:
+            Tuple[int, float]: The feature index and its value to split on
+        """
         p = X.shape[1]
         best_ind_bound = ()
         best_err = np.inf
@@ -88,10 +132,16 @@ class DecisionTree:
 
     def fit(
         self,
-        X,
-        y
+        X: np.array,
+        y: np.array
     ):
-        """Calls the function to build the tree"""
+        """
+        Calls the function to build the tree
+
+        Args:
+            X (np.array): Input features. Shape (n_samples, n_features)
+            y (np.array): Target values. Shape (n_samples)
+        """
         # Reset the nodes and leaves
         self.nodes = []
         self.leaves = []
@@ -101,12 +151,23 @@ class DecisionTree:
 
     def build_tree(
         self,
-        X,
-        y,
-        depth,
-        parent=None
-    ):
-        """Builds the tree through recursion"""
+        X: np.array,
+        y: np.array,
+        depth: int,
+        parent: Node=None
+    ) -> Node:
+        """
+        Builds the decision tree recursively
+
+        Args:
+            X (np.array): Input features. Shape (n_features, n_samples)
+            y (np.array): Target values. Shape (n_features)
+            depth (int): Current depth of the tree
+            parent (Node, optional): The parent node from which to grow the tree. Defaults to None.
+
+        Returns:
+            Node: The parent node of the tree, containing children recursively
+        """
         n_samples = y.shape[0]
         n_unique_labels = len(np.unique(y))
 
@@ -142,9 +203,17 @@ class DecisionTree:
 
     def traverse(
         self,
-        x
-    ):
-        """Traverses the tree given an input vector x"""
+        x: np.array
+    ) -> Union[int, float]:
+        """
+        Traverses the tree for a single input sample to predict from
+
+        Args:
+            x (np.array): Input sample. Shape (n_features)
+
+        Returns:
+            Union[int, float]: Predicted value as float or int for regression or classification, respectively
+        """
         current = self.parent_node
         while not current.is_leaf:
             if x[current.feature] <= current.bound:
@@ -153,58 +222,121 @@ class DecisionTree:
                 current = current.right
         return current.val
 
-    def get_number_terminal(self):
+    def get_number_terminal(
+        self
+    ) -> int:
+        """
+        Returns the number of terminal nodes in the tree.
+
+        Returns:
+            int: Number of terminal nodes
+        """
         return len(self.leaves)
 
     def predict(
         self,
-        X
-    ):
+        X: np.array
+    ) -> list:
+        """
+        Computes the prediction for a set of input vectors.
+
+        Args:
+            X (np.array): Input data points. Shape (n_samples, n_features)
+
+        Returns:
+            list: Predictions for each data point
+        """
         y = [self.traverse(x) for x in X]
         return y
 
-    def reset(self):
+    def reset(
+        self
+    ):
+        """
+        Resets the nodes and leaves of the tree.
+        """
         self.nodes = []
         self.leaves = []
+
 
 class RegressionTree(DecisionTree):
     def __init__(
         self,
-        penalty_function,
-        max_depth=5,
-        min_samples=3
+        penalty_function: Callable,
+        max_depth: int=5,
+        min_samples: int=3
     ):
+        """
+        Initialise a regression tree, by creating a decision tree with the mean as the averaging function.
+
+        Args:
+            penalty_function    (Callable): The penalty function to use
+            max_depth      (int, optional): Maximum depth of the tree. Defaults to 5.
+            min_samples    (int, optional): Minimum number of training samples to allow per node. Defaults to 3.
+        """
         super().__init__(penalty_function, np.mean, max_depth, min_samples)
 
-def mode(y):
-    return sps.mode(y).mode[0]
 
 class ClassificationTree(DecisionTree):
     def __init__(
         self,
-        penalty_function,
-        max_depth=5,
-        min_samples=3,
-        mode_function=mode
+        penalty_function: Callable,
+        max_depth: int=5,
+        min_samples: int=3,
+        mode_function: Callable=None
     ):
+        """
+        Initialises a classification tree by creating a decision tree with the mode as the averaging function.
+
+        Args:
+            penalty_function (Callable): The penalty function to use
+            max_depth (int, optional): Maximum allowed depth of the tree. Defaults to 5.
+            min_samples (int, optional): Minimum number of training samples to allow per node. Defaults to 3.
+            mode_function (Callable, optional): Function to use for the mode. If None is supplied, use self.mode.
+        """
+        if mode_function is None:
+            mode_function = self.mode
+
         super().__init__(penalty_function, mode_function, max_depth, min_samples)
+
+    def mode(
+        y: np.array
+    ) -> int:
+        """
+        Computes the mode of the input array.
+
+        Args:
+            y (np.array): Input array to find mode for. Shape (n_samples)
+
+        Returns:
+            int: The mode
+        """
+        return sps.mode(y).mode[0]
 
 
 class Pruner:
-    """Takes care of the pruning of a DecisionTree"""
+    """Prunes a decision tree using cost-complexity pruning"""
     def __init__(
         self,
-        tree,
-        alpha
+        tree: DecisionTree,
+        alpha: float
     ):
         self.tree = tree
         self.alpha = alpha
 
     def prune_candidates(
         self,
-        tree
-    ):
-        """Returns list of possible nodes to prune. That is, second last layer"""
+        tree: DecisionTree
+    ) -> List[Node]:
+        """
+        Returns list of possible nodes to prune. That is, second last layer
+        
+        Args:
+            tree    (DecisionTree): The tree under consideration
+        
+        Returns
+            List[Node]: A list of the nodes that can be pruned, i.e. second-to-last layer
+        """
         candidates = []
         for leaf in tree.leaves:
             if leaf.parent not in candidates:
@@ -213,10 +345,19 @@ class Pruner:
 
     def prune_one(
         self,
-        tree,
-        candidates
-    ):
-        """Collapses one node, that leads to the smallest per-node increase in total error"""
+        tree: DecisionTree,
+        candidates: List[Node]
+    ) -> DecisionTree:
+        """
+        Collapses the node that leads to the smallest per-node increase in the total error.
+
+        Args:
+            tree      (DecisionTree): The tree under consideration
+            candidates  (List[Node]): List of nodes in the tree that can be pruned
+        
+        Returns:
+            DecisionTree: The tree with one node pruned
+        """
         # Check which candidate node carries least total error
         to_collapse = candidates[0]
         for candidate in candidates:
@@ -250,8 +391,15 @@ class Pruner:
         # and the val and err have been assigned during construction of tree
         return tree
 
-    def pruned_trees(self):
-        """Creates list of pruned trees to select from"""
+    def pruned_trees(
+        self
+    ) -> List[DecisionTree]:
+        """
+        Creates list of pruned trees by greedily pruning one node at a time.
+
+        Returns:
+            List[DecisionTree]: List of successively more pruned trees
+        """
         trees = [self.tree]
         while len(trees[-1].leaves) > 2:
             # Tree has more than two leaves: keep pruning
@@ -260,8 +408,15 @@ class Pruner:
             trees.append(self.prune_one(to_prune, candidates))
         return trees
     
-    def prune(self):
-        """Selects the best pruned tree"""
+    def prune(
+        self
+    ) -> DecisionTree:
+        """
+        Selects the best pruned tree according to cost-complexity criterion
+        
+        Returns:
+            DecisionTree: The selected pruned tree
+        """
         pruned_list = self.pruned_trees()
         cost_complexities = []
         for tree in pruned_list:
