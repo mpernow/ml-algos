@@ -17,6 +17,7 @@ def mean_squared_error(
     """
     return np.mean((y_true - y_pred) ** 2)
 
+
 def misclassification_error(
     y_true: np.array,
     y_pred: np.array
@@ -33,3 +34,51 @@ def misclassification_error(
     """
     N = len(y_true)
     return (1./N) * np.sum(np.array(y_true) != np.array(y_pred))
+
+
+def gini_index(
+    y_true: np.array,
+    y_pred: np.array
+) -> float:
+    """
+    Computes the gini impurity index for a set of values
+
+    Args:
+        y_true (np.array): The true values as a numpy array of shape (n_pred)
+        y_pred (np.array): The predicted values as a numpy array of shape (n_pred).
+            Not used but included for compatibility.
+
+    Returns:
+        float: The gini index
+    """
+    # y_pred is only included for compatibility, it will always be mode(y_true)
+    N = len(y_true)
+    sum = 0
+    for val in np.unique(y_true):
+        p = (1./N) * np.sum(y_true == val)
+        sum += p * (1 - p)
+    return sum
+
+
+def cross_entropy(
+    y_true: np.array,
+    y_pred: np.array
+) -> float:
+    """
+    Computes the cross entropy impurity for a set of values
+
+    Args:
+        y_true (np.array): The true values as a numpy array of shape (n_pred)
+        y_pred (np.array): The predicted values as a numpy array of shape (n_pred).
+            Not used but included for compatibility.
+
+    Returns:
+        float: The cross entropy
+    """
+    # y_pred is only included for compatibility, it will always be mode(y_true)
+    N = len(y_true)
+    sum = 0
+    for val in np.unique(y_true):
+        p = (1./N) * np.sum(y_true == val)
+        sum -= p * np.log(p)
+    return sum
