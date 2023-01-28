@@ -301,6 +301,7 @@ class ClassificationTree(DecisionTree):
         super().__init__(penalty_function, mode_function, max_depth, min_samples)
 
     def mode(
+        self,
         y: np.array
     ) -> int:
         """
