@@ -4,6 +4,7 @@ import numpy as np
 import scipy.stats as sps
 from typing import Union, Callable, Tuple, List
 
+from mlalgos.utils.error_funcs import misclassification_error, mean_squared_error
 
 class Node:
     def __init__(
@@ -425,3 +426,147 @@ class Pruner:
             cost_complexities.append(tot_err + self.alpha * tree_size)
         best_idx = cost_complexities.index(min(cost_complexities))
         return pruned_list[best_idx]
+
+
+class ClassificationTreePruned:
+    def __init__(
+        self,
+        alpha: float=0.5,
+        err_func: Callable=misclassification_error,
+        max_depth: int=10,
+        min_samples: int=3
+    ):
+        """
+        Initialises a pruned classification tree.
+
+        Args:
+            alpha           (float): The cost-complexity parameter. Defaults to 0.5.
+            err_func     (Callable): The error function to use when building the tree. Defaults to misclassification_error.
+            max_depth         (int): Maximum depth of the tree. Defaults to 10.
+            min_samples       (int): Minimum number of data points per node. Defaults to 3.
+        """
+        self.alpha = alpha
+        self.model = ClassificationTree(err_func, max_depth, min_samples)
+    
+    def fit(
+        self,
+        X: np.array,
+        y: np.array
+    ):
+        """
+        Fits the pruned model.
+
+        Args:
+            X (np.array): Input features. Shape (n_samples, n_features)
+            y (np.array): Target values. Shape (n_samples)
+        """
+        self.model.fit(X, y)
+        pruner = Pruner(self.model, self.alpha)
+        dt_classify_pruned = pruner.prune()
+        self.model = dt_classify_pruned
+    
+    def predict(
+        self,
+        X: np.array
+    ) -> np.array:
+        """
+        Prediction for a set of input features.
+
+        Args:
+            X (np.array): Input features to derive predictions for. Shape (n_points)
+
+        Returns:
+            np.array: The predicted values
+        """
+        return self.model.predict(X)
+    
+    def get_number_terminal(
+        self
+    ) -> int:
+        """
+        Returns the number of terminal nodes in the tree.
+
+        Returns:
+            int: Number of terminal nodes.
+        """
+        return self.model.get_number_terminal()
+    
+    def get_nodes(
+        self
+    ) -> List[Node]:
+        """
+        Returns the list of nodes in the tree.
+
+        Returns:
+            List[Node]: List of nodes
+        """
+        return self.model.nodes
+    
+    def reset(
+        self
+    ):
+        """
+        Resets the tree by clearing all nodes.
+        """
+        self.model.reset()
+
+
+class RegressionTreePruned:
+    def __init__(
+        self,
+        alpha: int=0.5,
+        err_func: Callable=mean_squared_error,
+        max_depth: int=10,
+        min_samples: int=3
+    ):
+        """
+        Initialises a pruned regression tree.
+
+        Args:
+            alpha             (int): The cost-complexity parameter. Defaults to 0.5.
+            err_func     (Callable): Error function to use when building the tree. Defaults to mean_squared_error.
+            max_depth         (int): Maximum depth of the tree. Defaults to 10.
+            min_samples       (int): Minimum number of data points per node. Defaults to 3.
+        """
+        self.alpha = alpha
+        self.model = RegressionTree(err_func, max_depth, min_samples)
+    
+    def fit(
+        self,
+        X: np.array,
+        y: np.array
+    ):
+        """
+        Fits the pruned model.
+
+        Args:
+            X (np.array): Input features. Shape (n_samples, n_features)
+            y (np.array): Target values. Shape (n_samples)
+        """
+        self.model.fit(X, y)
+        pruner = Pruner(self.model, self.alpha)
+        dt_regression_pruned = pruner.prune()
+        self.model = dt_regression_pruned
+    
+    def predict(
+        self,
+        X: np.array
+    ) -> np.array:
+        """
+        Prediction for a set of input features.
+
+        Args:
+            X (np.array): Input features to derive predictions for. Shape (n_points)
+
+        Returns:
+            np.array: The predicted values
+        """
+        return self.model.predict(X)
+    
+    def reset(
+        self
+    ):
+        """
+        Resets the tree by clearing all nodes.
+        """
+        self.model.reset()
