@@ -126,7 +126,7 @@ class DecisionTree:
                     pred_y_left = np.ones(y_left.shape[0])*self.ave_function(y_left)
                     pred_y_right = np.ones(y_right.shape[0])*self.ave_function(y_right)
                     err = (y_left.shape[0]/y.shape[0])*self.penalty_function(y_left, pred_y_left) + (y_right.shape[0]/y.shape[0])*self.penalty_function(y_right, pred_y_right)
-                if (err < best_err) and (y_left.shape[0] >= self.min_samples) and (y_right.shape[0] >= self.min_samples):
+                if (err < best_err):
                     best_err = err
                     best_ind_bound = (i, val)
         return best_ind_bound
@@ -187,6 +187,12 @@ class DecisionTree:
         
         feature, bound = self.best_split(X, y)
         inds_left, inds_right = self.split_inds(X, feature, bound)
+
+        if (len(inds_left) <= self.min_samples) or (len(inds_right) <= self.min_samples):
+            # Stop the recursion
+            node = Node(parent=parent, is_leaf=True, val=val, N=N, err=err)
+            self.leaves.append(node)
+            return node
 
         node = Node(parent=parent, feature=feature, bound=bound, val=val, err=err, N=N)
 
