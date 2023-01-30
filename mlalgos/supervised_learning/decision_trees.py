@@ -440,6 +440,7 @@ class ClassificationTreePruned:
         self,
         alpha: float=0.5,
         err_func: Callable=misclassification_error,
+        mode_function: Callable=None,
         max_depth: int=10,
         min_samples: int=3
     ):
@@ -449,11 +450,16 @@ class ClassificationTreePruned:
         Args:
             alpha           (float): The cost-complexity parameter. Defaults to 0.5.
             err_func     (Callable): The error function to use when building the tree. Defaults to misclassification_error.
+            mode_function(Callable): The mode function to use for favouring specificity or sensitivity. None means regular mode.
             max_depth         (int): Maximum depth of the tree. Defaults to 10.
             min_samples       (int): Minimum number of data points per node. Defaults to 3.
         """
         self.alpha = alpha
-        self.model = ClassificationTree(err_func, max_depth, min_samples)
+        if mode_function is None:
+            self.model = ClassificationTree(err_func, max_depth, min_samples)
+        else:
+            self.model = ClassificationTree(err_func, max_depth, min_samples, mode_function=mode_function)
+
     
     def fit(
         self,
