@@ -448,11 +448,11 @@ class ClassificationTreePruned:
         Initialises a pruned classification tree.
 
         Args:
-            alpha           (float): The cost-complexity parameter. Defaults to 0.5.
-            err_func     (Callable): The error function to use when building the tree. Defaults to misclassification_error.
-            mode_function(Callable): The mode function to use for favouring specificity or sensitivity. None means regular mode.
-            max_depth         (int): Maximum depth of the tree. Defaults to 10.
-            min_samples       (int): Minimum number of data points per node. Defaults to 3.
+            alpha              (float): The cost-complexity parameter. Defaults to 0.5.
+            err_func        (Callable): The error function to use when building the tree. Defaults to misclassification_error.
+            mode_function   (Callable): The mode function to use for favouring specificity or sensitivity. None means regular mode.
+            max_depth            (int): Maximum depth of the tree. Defaults to 10.
+            min_samples          (int): Minimum number of data points per node. Defaults to 3.
         """
         self.alpha = alpha
         if mode_function is None:
