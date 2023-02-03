@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 
 
 class StandardScaler:
@@ -87,3 +88,37 @@ def cross_validation_split(
                         'test': {'X': X_test, 'y': y_test}})
 
     return splits
+
+
+def compute_accuracy(
+    model: torch.nn.Module,
+    data_loader: torch.utils.data.Dataloader,
+    device: torch.device
+) -> float:
+    """
+    Computes the accuracy of a trained pytorch model.
+
+    Args:
+        model                   (torch.nn.Module): The model to predict using
+        data_loader (torch.utils.data.Dataloader): Dataloader contianing the data
+        device                     (torch.device): Pytorch device to run model on
+
+    Returns:
+        float: Computed accuracy as a percentage
+    """
+    model.eval()
+    with torch.no_grad():
+        correct_pred, num_examples = 0, 0
+        for i, (features, targets) in enumerate(data_loader):
+
+            features = features.to(device)
+            targets = targets.to(device)
+
+            probs = model(features)
+            # If split over multiple devices
+            if isinstance(probs, torch.distributed.rpc.api.RRef):
+                probs = probs.local_value()
+            _, predicted_labels = torch.max(probs, 1)
+            num_examples += targets.size(0)
+            correct_pred += (predicted_labels == targets).sum().float()
+    return correct_pred/num_examples * 100
