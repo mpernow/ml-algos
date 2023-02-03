@@ -122,3 +122,56 @@ def compute_accuracy(
             num_examples += targets.size(0)
             correct_pred += (predicted_labels == targets).sum().float()
     return correct_pred/num_examples * 100
+
+
+class TransformPCA:
+    """
+    Implement the PCA transformation of the AlexNet paper.
+    """
+    def __init__(self):
+        pass
+
+    def __call__(self, image):
+        # Make sure image is e.g. (3, 32, 32)
+        (h, w) = (image.shape[1], image.shape[2])
+        assert (image.dim() == 3) and (image.shape[0] == 3)
+
+        # Normalise to zero mean and unit std
+        mean = image.mean((1,2), keepdim=True)
+        std = image.std((1,2), keepdim=True)
+        normalised_image = (image - mean)/std
+
+        flattened = normalised_image.flatten(start_dim=1, end_dim=2)
+        # Make sure it is (3, d)
+        assert (flattened.dim() == 2) and (flattened.shape[0] == 3)
+        
+        # Compute covariance where rows are variables
+        cov = flattened.cov()
+        # Should be 3x3
+        assert (cov.shape == (3,3))
+
+        # Eigendecomposition (eigenvectors are columns of v)
+        # Use eigh since covariance is real symmetric, giving real eigen-decomposition
+        l, p = torch.linalg.eigh(cov)
+
+        # Random variables
+        alphas = torch.normal(mean=0.0, std=0.1, size=(3,))
+        # alphas = torch.normal(mean=0.0, std=0.1, size=(3,))
+        
+        # Define the perturbations as the three principal components scaled by eigenvector times random variable
+        # (3x3) x (3x1) --> (3x1)
+        delta = p @ (alphas * l).reshape((3, 1))
+        perturbed = (flattened + delta).reshape((3, h, w))
+
+        # Clear some variables, to prevent slowing down with epochs (not sure is this made any difference)
+        del h
+        del w
+        del normalised_image
+        del flattened
+        del cov
+        del l
+        del p
+        del alphas
+        del delta
+
+        return (perturbed * std + mean)

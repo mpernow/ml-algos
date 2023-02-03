@@ -4,7 +4,7 @@ import torchvision.transforms as transforms
 from torch.utils.data import SubsetRandomSampler
 from typing import Callable
 
-from constants_cifar import DataConsts
+from mlalgos.deep_learning.alexnet.constants_cifar import DataConsts
 
 
 def get_data_loaders(

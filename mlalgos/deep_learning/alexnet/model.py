@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from constants_cifar import (
+from mlalgos.deep_learning.alexnet.constants_cifar import (
     DataConsts,
     Kernel1,
     Kernel2,
