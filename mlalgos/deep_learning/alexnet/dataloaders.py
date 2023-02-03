@@ -1,18 +1,32 @@
 import torch
 import torchvision
-from torch.utils.data import SubsetRandomSampler
 import torchvision.transforms as transforms
+from torch.utils.data import SubsetRandomSampler
+from typing import Callable
 
 from constants_cifar import DataConsts
 
 
 def get_data_loaders(
-    batch_size,
-    num_workers=0,
-    val_fraction=0.1,
-    train_transform=None,
-    test_transform=None
-):
+    batch_size: int,
+    num_workers: int=0,
+    val_fraction: float=0.1,
+    train_transform: Callable=None,
+    test_transform: Callable=None
+) -> tuple[torch.utils.data.DataLoader]:
+    """
+    Creates dataloaders for the CIFAR10 data for training, validation, and test data.
+
+    Args:
+        batch_size (int): Size of each training batch
+        num_workers (int): Number of workers in the data loaders. Defaults to 0.
+        val_fraction (float): Fraction of training data to use for validation. Defaults to 0.1.
+        train_transform (Callable): Transforms to perform on the training data.
+        test_transform (Callable): Transforms to perfors on the test data.
+
+    Returns:
+        tuple[torch.utils.data.DataLoader]: Dataloaders for training, validation, and test data
+    """
 
     if train_transform is None:
             train_transform = transforms.ToTensor()
