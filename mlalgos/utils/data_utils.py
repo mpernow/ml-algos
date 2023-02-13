@@ -92,7 +92,7 @@ def cross_validation_split(
 
 def compute_accuracy(
     model: torch.nn.Module,
-    data_loader: torch.utils.data.Dataloader,
+    data_loader: torch.utils.data.DataLoader,
     device: torch.device
 ) -> float:
     """
