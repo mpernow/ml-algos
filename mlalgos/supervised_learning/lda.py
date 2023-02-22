@@ -8,7 +8,9 @@ class LDA:
         """
         Initialises a linear discriminant analysis classifier.
         """
-        pass
+        self.covariance = None
+        self.class_means = []
+        self.class_priors = []
     
     def fit(
         X: np.array,
