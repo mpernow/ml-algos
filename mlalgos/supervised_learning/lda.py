@@ -1,4 +1,5 @@
 import numpy as np
+import scipy.linalg as spl
 
 
 class LDA:
@@ -8,6 +9,7 @@ class LDA:
         """
         Initialises a linear discriminant analysis classifier. The classes are assumed to be labelled 0, 1, ...
         """
+        self.n_classes = 0
         self.covariance = None
         self.class_centroids = []
         self.class_priors = []
@@ -44,7 +46,25 @@ class LDA:
             var += class_var
         var /= (N - n_classes)
 
+        self.n_classes = n_classes
         self.class_centroids = centroids
         self.class_priors = priors
         self.covariance = var
 
+    def predict(
+        self,
+        X: np.array
+    ):
+        """
+        Uses the computed parameters in fitting to return the class with highest discriminant function.
+
+        Args:
+            X (np.array): Features to predict from as an array of shape (n_samples, n_features)
+        """
+        discriminators = []
+        inv_sig = spl.inv(self.covariance)
+        for cl in range(self.n_classes):
+            discriminators.append(X @ inv_sig @ self.class_centroids[cl]
+                - 0.5 * self.class_centroids[cl].T @ inv_sig @ self.class_centroids[cl]
+                + np.log(self.class_priors[cl]))
+        return np.argmax(discriminators, axis=0)
