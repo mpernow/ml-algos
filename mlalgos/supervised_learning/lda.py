@@ -54,12 +54,15 @@ class LDA:
     def predict(
         self,
         X: np.array
-    ):
+    ) -> np.array:
         """
         Uses the computed parameters in fitting to return the class with highest discriminant function.
 
         Args:
             X (np.array): Features to predict from as an array of shape (n_samples, n_features)
+        
+        Returns:
+            np.array: The predicted values as an array of shape (n_samples)
         """
         discriminators = []
         inv_sig = spl.inv(self.covariance)
