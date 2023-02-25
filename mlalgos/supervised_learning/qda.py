@@ -38,7 +38,7 @@ class QDA:
             centroids.append(centroid)
             N_k = np.sum(y == cl)
             priors.append(float(N_k)/N)
-            class_cov = np.zeros(X.shape[1], X.shape[1])
+            class_cov = np.zeros((X.shape[1], X.shape[1]))
             for row in X[y == cl]:
                 row, mu = row.reshape(X.shape[1], 1), centroid.reshape(X.shape[1], 1)
                 class_cov += (row - mu) @ (row - mu).T
@@ -65,8 +65,11 @@ class QDA:
         discriminators = []
         for cl in range(self.n_classes):
             inv_sig = spl.inv(self.class_covariances[cl])
-            discriminators.append(X @ inv_sig @ self.class_centroids[cl]
-                - 0.5 * self.class_centroids[cl].T @ inv_sig @ self.class_centroids[cl]
-                + np.log(self.class_priors[cl]))
+            quad_term = np.array([(x - self.class_centroids[cl]) @ inv_sig @ (x - self.class_centroids[cl]).T for x in X])
+            discriminators.append(
+                -0.5 * np.log(spl.det(self.class_covariances[cl]))
+                -0.5 * quad_term
+                + np.log(self.class_priors[cl])
+            )
         return np.argmax(discriminators, axis=0)
 
