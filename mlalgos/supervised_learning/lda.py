@@ -71,3 +71,18 @@ class LDA:
                 - 0.5 * self.class_centroids[cl].T @ inv_sig @ self.class_centroids[cl]
                 + np.log(self.class_priors[cl]))
         return np.argmax(discriminators, axis=0)
+
+    def transform(self,
+        X: np.array,
+        n_components: int
+    ) -> np.array:
+        """
+        Uses the computed parameters to perform an LDA rank reduction.
+
+        Args:
+            X       (np.array): Input features to transform as an array of shape (n_samples, n_features)
+            n_components (int): Number of components to keep
+
+        Returns:
+            np.array: Transformed array of shape (n_samples, n_components)
+        """
