@@ -77,7 +77,7 @@ class LDA:
         n_components: int
     ) -> np.array:
         """
-        Uses the computed parameters to perform an LDA rank reduction.
+        Uses the computed parameters to perform an LDA rank reduction. The notation is that of ESL Chapter 4.3
 
         Args:
             X       (np.array): Input features to transform as an array of shape (n_samples, n_features)
@@ -86,3 +86,24 @@ class LDA:
         Returns:
             np.array: Transformed array of shape (n_samples, n_components)
         """
+        M = np.array(self.centroids)
+        W = self.covariance  # within-class covariance
+        W_inv_sqrt = spl.inverse(spl.fractional_matrix_power(W, 0.5))
+        M_star = M @ W_inv_sqrt
+
+        # Compute between-class covariance
+        mean_of_means = np.zeros((M_star.shape[1],))
+        for cl in range(self.n_classes):
+            mean_of_means += self.class_priors[cl] * M_star[cl]
+        mean_of_means = mean_of_means.reshape(M_star.shape[1], 1)
+        B_star = np.zeros(M_star.shape[1], M_star.shape[1])
+        for cl in range(self.n_classes):
+            M_k = M_star[cl].reshape(M_star.shape[1], 1)
+            B_star += self.class_priors[cl] * (M_k - mean_of_means) @ (M_k - mean_of_means).T
+        
+        # TODO eigendecompose B_star
+
+
+
+
+
