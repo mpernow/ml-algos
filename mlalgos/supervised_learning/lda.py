@@ -103,9 +103,8 @@ class LDA:
         
         DB, V_star = spl.eigh(B_star)
         V = W_inv_sqrt @ V_star
-        # The columns of V are the eigenvectors, form v_l^T X
+        # The columns of V are the eigenvectors. Now form v_l^T X
 
+        Z = V[:, :n_components] @ X
 
-
-
-
+        return Z 
