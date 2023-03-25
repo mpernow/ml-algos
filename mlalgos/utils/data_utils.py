@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+from itertools import combinations_with_replacement
 
 
 class StandardScaler:
@@ -122,6 +123,33 @@ def compute_accuracy(
             num_examples += targets.size(0)
             correct_pred += (predicted_labels == targets).sum().float()
     return correct_pred/num_examples * 100
+
+
+def polynomial_features(
+    X: np.array,
+    degree: int
+) -> np.array:
+    """
+    Generates all polynomial feature of the input data up to the specified degree.
+
+    Args:
+        X (np.array): Input data as an array of shape (n_samples, n_features).
+        degree (int): Desired degree of polynomial features.
+
+    Returns:
+        np.array: The output data as array of shape (n_samples, n_new_features).
+    """
+    n_features = X.shape[1]
+
+    combinations = []
+    for i in range(1, degree + 1):
+        combinations.extend(list(combinations_with_replacement(range(n_features), i)))
+
+    X_new = np.zeros((X.shape[0], len(combinations)))
+    for i, indices in enumerate(combinations):
+        X_new[:, i] = np.prod(X[:, indices], axis=1)
+
+    return X_new
 
 
 class TransformPCA:
