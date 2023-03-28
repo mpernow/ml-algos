@@ -21,6 +21,8 @@ class LDA:
     ):
         """
         Fits the LDA classifier by computing the centroids, priors, and covariance.
+        The target classes are expected to be 0, 1, ... and each of them have to appear
+        in y at least once
 
         Args:
             X (np.array): The features as an array of shape (n_samples, n_features)
@@ -86,9 +88,9 @@ class LDA:
         Returns:
             np.array: Transformed array of shape (n_samples, n_components)
         """
-        M = np.array(self.centroids)
+        M = np.array(self.class_centroids)
         W = self.covariance  # within-class covariance
-        W_inv_sqrt = spl.inverse(spl.fractional_matrix_power(W, 0.5))
+        W_inv_sqrt = spl.inv(spl.fractional_matrix_power(W, 0.5))
         M_star = M @ W_inv_sqrt
 
         # Compute between-class covariance
@@ -96,15 +98,15 @@ class LDA:
         for cl in range(self.n_classes):
             mean_of_means += self.class_priors[cl] * M_star[cl]
         mean_of_means = mean_of_means.reshape(M_star.shape[1], 1)
-        B_star = np.zeros(M_star.shape[1], M_star.shape[1])
+        B_star = np.zeros((M_star.shape[1], M_star.shape[1]))
         for cl in range(self.n_classes):
             M_k = M_star[cl].reshape(M_star.shape[1], 1)
             B_star += self.class_priors[cl] * (M_k - mean_of_means) @ (M_k - mean_of_means).T
         
         DB, V_star = spl.eigh(B_star)
         V = W_inv_sqrt @ V_star
-        # The columns of V are the eigenvectors. Now form v_l^T X
 
-        Z = V[:, :n_components] @ X
+        # The columns of V are the eigenvectors. Now form v_l^T X
+        Z = X @ V[:, :n_components]
 
         return Z 
