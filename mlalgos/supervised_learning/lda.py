@@ -103,8 +103,8 @@ class LDA:
             M_k = M_star[cl].reshape(M_star.shape[1], 1)
             B_star += self.class_priors[cl] * (M_k - mean_of_means) @ (M_k - mean_of_means).T
         
-        DB, V_star = spl.eigh(B_star)
-        V = W_inv_sqrt @ V_star
+        _, V_star = spl.eigh(B_star)
+        V = W_inv_sqrt @ np.flip(V_star, axis=1)
 
         # The columns of V are the eigenvectors. Now form v_l^T X
         Z = X @ V[:, :n_components]
