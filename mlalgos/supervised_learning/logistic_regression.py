@@ -45,7 +45,8 @@ class LogisticRegression:
     ) -> np.array:
         """
         Creates a stacked one-hot encoding of y.
-        The result is [y1==0, y2==0, ..., yN==0, y1==1, ..., yN==1, ..., y1==K-1, ..., yN==K-1]
+        The result is [y_1==0, y_2==0, ..., y_N==0, y_1==1, ..., y_N==1, ..., y_1==K-2, ..., y_N==K-2]^T
+        It only includes the first K-1 classes (0 up to K-2) since the last class has no independent beta parameters.
 
         Args:
             y    (np.array): The original array of classes for each data point
@@ -55,4 +56,4 @@ class LogisticRegression:
         stacked_y = np.zeros((n_classes * N))
         idx_ones = N * y + np.arange(N)
         stacked_y[idx_ones] = 1
-        return stacked_y
+        return stacked_y[:N * (n_classes) - 1]
