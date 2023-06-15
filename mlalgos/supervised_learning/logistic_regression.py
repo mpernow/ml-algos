@@ -30,6 +30,7 @@ class LogisticRegression:
         betas = np.zeros((X_with_bias.shape[1], n_classes - 1))
 
         stacked_y = self._get_stacked_y(y)
+        stacked_p = self._get_stacked_probabilites(X, betas, n_classes)
         # TODO
         # Set initial betas
         # Compute derivative and Hessian
@@ -37,8 +38,8 @@ class LogisticRegression:
 
         self.n_classes = n_classes
 
-    @staticmethod
     def _get_stacked_y(
+        self,
         y: np.array,
         n_classes: int,
         N: int
@@ -57,3 +58,24 @@ class LogisticRegression:
         idx_ones = N * y + np.arange(N)
         stacked_y[idx_ones] = 1
         return stacked_y[:N * (n_classes) - 1]
+
+    def _get_stacked_probabilites(
+        self,
+        X: np.array,
+        betas: np.array,
+        n_classes: int
+    ) -> np.array:
+        """
+        Computes the stacked vector of logit probabilities.
+        The result is [p_0(x_1), p_0(x_2), ..., p_0(x_N), p_1(x_1), ..., p_{K-2}(x_N)]
+        which includes only the first K-1 classes (0 up to K-2) since the last class has no independent beta parameters.
+
+        Args:
+            X     (np.array): The data features as an array of shape (n_samples, n_features)
+            betas (np.array): The beta parameters of the logistic regression model as an array of shape (n_features, n_classes - 1)
+            n_classes  (int): The number of classes
+        """
+        beta_times_X = betas.T @ X.T # shape (n_classes - 1, n_samples)
+        denominators = 1 + np.exp(np.sum(beta_times_X, axis=1)) # shape (1, n_samples)
+        logits = np.exp(beta_times_X) / np.tile(denominators, (n_classes - 1, 1)) # shape (n_classes - 1, n_samples)
+        return logits.T.flatten()
