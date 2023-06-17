@@ -29,14 +29,34 @@ class LogisticRegression:
 
         betas = np.zeros((X_with_bias.shape[1], n_classes - 1))
 
-        stacked_y = self._get_stacked_y(y)
-        stacked_p = self._get_stacked_probabilites(X, betas, n_classes)
         # TODO
         # Set initial betas
         # Compute derivative and Hessian
         # Optimise
 
         self.n_classes = n_classes
+
+    def _first_deriv(
+        self,
+        X: np.array,
+        y: np.array,
+        betas: np.array,
+        n_classes: int
+    ):
+        """
+        Computes the first derivatives of the log-likelihood with respect to the parameters beta.
+
+        Args:
+            X     (np.array): The features as an array of shape (n_samples, n_features)
+            y     (np.array): The targets as an array of shape (n_samples)
+            betas (np.array): The beta parameters as an array of shape (n_features, n_classes - 1)
+            n_classes  (int): The number of classes
+        """
+        stacked_y = self._get_stacked_y(y)
+        stacked_p = self._get_stacked_probabilites(X, betas, n_classes)
+        X_hat = np.kron(np.eye(n_classes - 1), X.T)
+        deriv_vector = X_hat @ (stacked_y - stacked_p) # shape n_features * (n_classes - 1)
+        return deriv_vector.reshape((X.shape[1], n_classes - 1))
 
     def _get_stacked_y(
         self,
