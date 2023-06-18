@@ -8,6 +8,7 @@ class LogisticRegression:
         Initialises a logistic regression classifier.
         """
         self.n_classes = 0
+        self.betas = np.array([])
 
     def fit(
         self,
@@ -27,9 +28,35 @@ class LogisticRegression:
 
         X_with_bias = np.insert(X, 0, 1, axis=1)
 
-        betas = np.zeros((1, X_with_bias.shape[1] * (n_classes - 1)))
+        betas = np.zeros(( X_with_bias.shape[1] * (n_classes - 1), ))
+        first_deriv = self._first_deriv(X, y, betas, n_classes, N)
+        second_deriv = self._second_deriv(X, betas, n_classes, N)
+
+        tol = 1.e-3
+        diff = 1.
+        while diff > tol:
+            new_betas = self._newton_step(betas, first_deriv, second_deriv)
+            diff = np.linalg.norm(new_betas - betas)
+            betas = new_betas
 
         self.n_classes = n_classes
+        self.betas = betas
+
+    def _newton_step(
+        self,
+        betas: np.array,
+        first_deriv: np.array,
+        second_deriv: np.array
+    ) -> np.array:
+        """
+        Computes the next beta in a Newton-Raphson step.
+
+        Args:
+            betas        (np.array): The beta parameters as an array of shape (n_features * (n_classes - 1), )
+            first_deriv  (np.array): First derivative as an np.array
+            second_deriv (np.array): Second derivative as an np.array
+        """
+        return betas - np.linalg.inv(second_deriv) @ first_deriv
 
     def _first_deriv(
         self,
@@ -45,7 +72,7 @@ class LogisticRegression:
         Args:
             X     (np.array): The features as an array of shape (n_samples, n_features)
             y     (np.array): The targets as an array of shape (n_samples)
-            betas (np.array): The beta parameters as an array of shape (1 , n_features * (n_classes - 1))
+            betas (np.array): The beta parameters as an array of shape (n_features * (n_classes - 1), )
             n_classes  (int): The number of classes
             N          (int): The number of data points
         """
@@ -66,7 +93,7 @@ class LogisticRegression:
 
         Args:
             X     (np.array): The features as an array of shape (n_samples, n_features)
-            betas (np.array): The beta parameters as an array of shape (1, n_features * (n_classes - 1))
+            betas (np.array): The beta parameters as an array of shape (n_features * (n_classes - 1), )
             n_classes  (int): The number of classes
             N          (int): The number of data points
         """
@@ -114,7 +141,7 @@ class LogisticRegression:
 
         Args:
             X     (np.array): The data features as an array of shape (n_samples, n_features)
-            betas (np.array): The beta parameters of the logistic regression model as an array of shape (1, n_features * (n_classes - 1))
+            betas (np.array): The beta parameters of the logistic regression model as an array of shape (n_features * (n_classes - 1), )
             n_classes  (int): The number of classes
         """
         beta_mat = betas.reshape((X.shape[1], n_classes - 1))
