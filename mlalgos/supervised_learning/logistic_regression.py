@@ -27,12 +27,7 @@ class LogisticRegression:
 
         X_with_bias = np.insert(X, 0, 1, axis=1)
 
-        betas = np.zeros((X_with_bias.shape[1], n_classes - 1))
-
-        # TODO
-        # Set initial betas
-        # Compute derivative and Hessian
-        # Optimise
+        betas = np.zeros((1, X_with_bias.shape[1] * (n_classes - 1)))
 
         self.n_classes = n_classes
 
@@ -50,7 +45,7 @@ class LogisticRegression:
         Args:
             X     (np.array): The features as an array of shape (n_samples, n_features)
             y     (np.array): The targets as an array of shape (n_samples)
-            betas (np.array): The beta parameters as an array of shape (n_features, n_classes - 1)
+            betas (np.array): The beta parameters as an array of shape (1 , n_features * (n_classes - 1))
             n_classes  (int): The number of classes
             N          (int): The number of data points
         """
@@ -72,7 +67,7 @@ class LogisticRegression:
 
         Args:
             X     (np.array): The features as an array of shape (n_samples, n_features)
-            betas (np.array): The beta parameters as an array of shape (n_features, n_classes - 1)
+            betas (np.array): The beta parameters as an array of shape (1, n_features * (n_classes - 1))
             n_classes  (int): The number of classes
             N          (int): The number of data points
         """
@@ -120,10 +115,11 @@ class LogisticRegression:
 
         Args:
             X     (np.array): The data features as an array of shape (n_samples, n_features)
-            betas (np.array): The beta parameters of the logistic regression model as an array of shape (n_features, n_classes - 1)
+            betas (np.array): The beta parameters of the logistic regression model as an array of shape (1, n_features * (n_classes - 1))
             n_classes  (int): The number of classes
         """
-        beta_times_X = betas.T @ X.T # shape (n_classes - 1, n_samples)
+        beta_mat = betas.reshape((X.shape[1], n_classes - 1))
+        beta_times_X = beta_mat.T @ X.T # shape (n_classes - 1, n_samples)
         denominators = 1 + np.exp(np.sum(beta_times_X, axis=1)) # shape (1, n_samples)
         logits = np.exp(beta_times_X) / np.tile(denominators, (n_classes - 1, 1)) # shape (n_classes - 1, n_samples)
         return logits.T.flatten()
