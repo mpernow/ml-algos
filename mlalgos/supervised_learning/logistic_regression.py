@@ -52,8 +52,7 @@ class LogisticRegression:
         stacked_y = self._get_stacked_y(y, n_classes, N)
         stacked_p = self._get_stacked_probabilites(X, betas, n_classes)
         X_hat = self._get_block_x(X, n_classes)
-        deriv_vector = X_hat @ (stacked_y - stacked_p) # shape n_features * (n_classes - 1)
-        return deriv_vector.reshape((X.shape[1], n_classes - 1))
+        return X_hat @ (stacked_y - stacked_p) # shape n_features * (n_classes - 1)
 
     def _second_deriv(
         self,
