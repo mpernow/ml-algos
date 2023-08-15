@@ -55,7 +55,8 @@ class LogisticRegression:
         Returns:
             np.array: Predicted values as an np.array of shape (n_samples)
         """
-        logits = self._get_logits(X)
+        logits = self._get_logits(X, self.betas, self.n_classes)
+        return np.argmax(logits, axis=1)
 
     def _newton_step(
         self,
@@ -162,11 +163,9 @@ class LogisticRegression:
         Returns:
             np.array: The probabilities as a stacked array of shape (n_samples * (n_classes - 1))
         """
-        beta_mat = betas.reshape((X.shape[1], n_classes - 1))
-        beta_times_X = beta_mat.T @ X.T # shape (n_classes - 1, n_samples)
-        denominators = 1 + np.exp(np.sum(beta_times_X, axis=1)) # shape (1, n_samples)
-        logits = np.exp(beta_times_X) / np.tile(denominators, (n_classes - 1, 1)) # shape (n_classes - 1, n_samples)
-        return logits.T.flatten()
+        logits = self._get_logits(X, betas, n_classes)
+        # Remove last class (since it has no independent parameters)
+        return logits[:, :-1].T.flatten()
 
     def _get_block_x(
         self,
@@ -185,19 +184,24 @@ class LogisticRegression:
     def _get_logits(
         self,
         X: np.array,
+        betas: np.array,
+        n_classes: int
     ) -> np.array:
         """
         Computes the logit probabilites for a given input.
 
         Args:
-            X   (np.array): The data features as an array of shape (n_samples, n_features)
+            X     (np.array): The data features as an array of shape (n_samples, n_features)
+            betas (np.array): The beta parameters of the logistic regression model as an array of shape (n_features * (n_classes - 1), )
+            n_classes  (int): The number of classes
 
         Returns:
             np.array: The logit probabilities as an array of shape (n_samples, n_classes)
         """
-        beta_mat = self.betas.reshape((X.shape[1], self.n_classes - 1))
-        beta_times_X = beta_mat.T @ X.T # shape (n_classes - 1, n_samples)
-        denominators = 1 + np.exp(np.sum(beta_times_X, axis=1)) # shape (1, n_samples)
-        logits = (np.exp(beta_times_X) / np.tile(denominators, (self.n_classes - 1, 1))).T # shape (n_samples, n_classes - 1)
+        n_samples = X.shape[0]
+        beta_mat = betas.reshape((X.shape[1], n_classes - 1))
+        beta_times_X = X @ beta_mat # shape (n_samples, n_classes - 1)
+        denominators = 1 + np.exp(np.sum(beta_times_X, axis=1)) # shape (n_samples, 1)
+        logits = np.exp(beta_times_X) / np.tile(denominators, (1, n_classes - 1)) # shape (n_samples, n_classes - 1)
         # Add in the last column (corresponding to last class)
-        return np.concatenate((logits, (1 - np.sum(logits, axis=1)).reshape((self.n_samples, 1))), axis=1)
+        return np.concatenate((logits, (1 - np.sum(logits, axis=1)).reshape((n_samples, 1))), axis=1)
