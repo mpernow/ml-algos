@@ -28,19 +28,41 @@ class LogisticRegression:
 
         X_with_bias = np.insert(X, 0, 1, axis=1)
 
-        betas = np.zeros(( X_with_bias.shape[1] * (n_classes - 1), ))
-        first_deriv = self._first_deriv(X, y, betas, n_classes, N)
-        second_deriv = self._second_deriv(X, betas, n_classes, N)
+        betas = np.zeros(( X_with_bias.shape[1], (n_classes - 1), )) + 0.01 # Not exactly zero to avoid singular matrix in Newton step
+        # betas = np.random.rand(X_with_bias.shape[1], (n_classes - 1))
 
         tol = 1.e-3
         diff = 1.
-        while diff > tol:
+        diffs = []
+        losses = []
+        # while diff > tol:
+        for i in range(20):
+            print(betas)
+            logits = self._get_logits(X_with_bias, betas, n_classes)
+            print(logits)
+            print("loss: ", self.loss(y, logits))
+            losses.append(self.loss(y, logits))
+            first_deriv = self._first_deriv(X_with_bias, y, betas, n_classes, N)
+            second_deriv = self._second_deriv(X_with_bias, betas, n_classes, N)
             new_betas = self._newton_step(betas, first_deriv, second_deriv)
             diff = np.linalg.norm(new_betas - betas)
+            print('New:')
+            print(new_betas)
+            print('Old:')
+            print(betas)
+            print(diff)
+            diffs.append(diff)
+            print()
             betas = new_betas
 
         self.n_classes = n_classes
         self.betas = betas
+        print(losses)
+        print(diffs)
+
+    def loss(self, y, logits):
+        from sklearn.metrics import log_loss
+        return log_loss(y, logits)
 
     def predict(
         self,
@@ -55,7 +77,8 @@ class LogisticRegression:
         Returns:
             np.array: Predicted values as an np.array of shape (n_samples)
         """
-        logits = self._get_logits(X, self.betas, self.n_classes)
+        X_with_bias = np.insert(X, 0, 1, axis=1)
+        logits = self._get_logits(X_with_bias, self.betas, self.n_classes)
         return np.argmax(logits, axis=1)
 
     def _newton_step(
@@ -72,7 +95,7 @@ class LogisticRegression:
             first_deriv  (np.array): First derivative as an np.array
             second_deriv (np.array): Second derivative as an np.array
         """
-        return betas - np.linalg.inv(second_deriv) @ first_deriv
+        return betas - (np.linalg.pinv(second_deriv) @ first_deriv).reshape(betas.shape, order='F')
 
     def _first_deriv(
         self,
@@ -115,13 +138,13 @@ class LogisticRegression:
         """
         stacked_p = self._get_stacked_probabilites(X, betas, n_classes)
         p_mats = [np.diag(stacked_p[k * N: (k + 1) * N]) for k in range(n_classes - 1)]
-        w_diags = [p @ (np.eye(N) - p) for p in p_mats]
-        w_mats = [[-p_mats[i] @ p_mats[j] for j in range(n_classes - 1)] for i in range(n_classes - 1)]
+        w_diags = [-p @ (np.eye(N) - p) for p in p_mats]
+        w_mats = [[p_mats[i] @ p_mats[j] for j in range(n_classes - 1)] for i in range(n_classes - 1)]
         for i in range(n_classes - 1):
             w_mats[i][i] = w_diags[i]
         W = np.block(w_mats)
         X_hat = self._get_block_x(X, n_classes)
-        return X_hat.T @ W @ X_hat
+        return X_hat @ W @ X_hat.T
 
     def _get_stacked_y(
         self,
@@ -142,7 +165,7 @@ class LogisticRegression:
         stacked_y = np.zeros((n_classes * N))
         idx_ones = N * y + np.arange(N)
         stacked_y[idx_ones] = 1
-        return stacked_y[:N * (n_classes) - 1]
+        return stacked_y[:N * (n_classes - 1)]
 
     def _get_stacked_probabilites(
         self,
@@ -199,9 +222,8 @@ class LogisticRegression:
             np.array: The logit probabilities as an array of shape (n_samples, n_classes)
         """
         n_samples = X.shape[0]
-        beta_mat = betas.reshape((X.shape[1], n_classes - 1))
-        beta_times_X = X @ beta_mat # shape (n_samples, n_classes - 1)
-        denominators = 1 + np.exp(np.sum(beta_times_X, axis=1)) # shape (n_samples, 1)
+        beta_times_X = X @ betas # shape (n_samples, n_classes - 1)
+        denominators = 1 + np.exp(np.sum(beta_times_X, axis=1, keepdims=True)) # shape (n_samples, 1)
         logits = np.exp(beta_times_X) / np.tile(denominators, (1, n_classes - 1)) # shape (n_samples, n_classes - 1)
         # Add in the last column (corresponding to last class)
         return np.concatenate((logits, (1 - np.sum(logits, axis=1)).reshape((n_samples, 1))), axis=1)
