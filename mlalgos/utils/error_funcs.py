@@ -70,20 +70,13 @@ def cross_entropy(
     Args:
         y_true (np.array): The true values as a numpy array of shape (n_pred)
         y_pred (np.array): The predicted values as a numpy array of shape (n_pred).
-            Not used but included for compatibility.
 
     Returns:
         float: The cross entropy
     """
-    # y_pred is only included for compatibility, it will always be mode(y_true)
     N = len(y_true)
     sum = 0
     for val in np.unique(y_true):
-        print(val)
         indxs = np.where(y_true == val)[0]
-        print(indxs)
-        print(y_pred[indxs][:, val])
-        # p = (1./N) * np.sum(y_true == val)
-        # sum -= p * np.log(p)
         sum -= np.sum(np.log([y_pred[indxs][:, val]]))
     return sum/N
