@@ -65,7 +65,7 @@ def cross_entropy(
     y_pred: np.array
 ) -> float:
     """
-    Computes the cross entropy impurity for a set of values
+    Computes the cross entropy for a set of values
 
     Args:
         y_true (np.array): The true values as a numpy array of shape (n_pred)
@@ -79,6 +79,11 @@ def cross_entropy(
     N = len(y_true)
     sum = 0
     for val in np.unique(y_true):
-        p = (1./N) * np.sum(y_true == val)
-        sum -= p * np.log(p)
-    return sum
+        print(val)
+        indxs = np.where(y_true == val)[0]
+        print(indxs)
+        print(y_pred[indxs][:, val])
+        # p = (1./N) * np.sum(y_true == val)
+        # sum -= p * np.log(p)
+        sum -= np.sum(np.log([y_pred[indxs][:, val]]))
+    return sum/N
