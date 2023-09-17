@@ -1,5 +1,7 @@
 import numpy as np
 
+from mlalgos.utils.error_funcs import cross_entropy
+
 class LogisticRegression:
     def __init__(
         self
@@ -29,40 +31,34 @@ class LogisticRegression:
         X_with_bias = np.insert(X, 0, 1, axis=1)
 
         betas = np.zeros(( X_with_bias.shape[1], (n_classes - 1), )) + 0.01 # Not exactly zero to avoid singular matrix in Newton step
-        # betas = np.random.rand(X_with_bias.shape[1], (n_classes - 1))
 
         tol = 1.e-3
-        diff = 1.
-        diffs = []
         losses = []
-        # while diff > tol:
-        for i in range(20):
-            print(betas)
+        has_converged = False
+        while not has_converged:
             logits = self._get_logits(X_with_bias, betas, n_classes)
-            print(logits)
-            print("loss: ", self.loss(y, logits))
-            losses.append(self.loss(y, logits))
+            losses.append(self._loss(y, logits))
             first_deriv = self._first_deriv(X_with_bias, y, betas, n_classes, N)
             second_deriv = self._second_deriv(X_with_bias, betas, n_classes, N)
             new_betas = self._newton_step(betas, first_deriv, second_deriv)
-            diff = np.linalg.norm(new_betas - betas)
-            print('New:')
-            print(new_betas)
-            print('Old:')
-            print(betas)
-            print(diff)
-            diffs.append(diff)
-            print()
             betas = new_betas
+            has_converged = self._check_convergence(losses, tol)
 
         self.n_classes = n_classes
         self.betas = betas
-        print(losses)
-        print(diffs)
 
-    def loss(self, y, logits):
-        from sklearn.metrics import log_loss
-        return log_loss(y, logits)
+    def _check_convergence(self, losses, tol):
+        if len(losses) <= 1:
+            return False
+        elif losses[-1] > losses[-2]:
+            # Loss increasing
+            return True
+        elif losses[-2] - losses[-1] < tol:
+            # Tolerance reached
+            return True
+
+    def _loss(self, y, logits):
+        return cross_entropy(y, logits)
 
     def predict(
         self,
