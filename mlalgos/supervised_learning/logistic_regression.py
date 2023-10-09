@@ -1,4 +1,5 @@
 import numpy as np
+from typing import List, Tuple
 
 from mlalgos.utils.error_funcs import cross_entropy
 
@@ -11,6 +12,7 @@ class LogisticRegression:
         """
         self.n_classes = 0
         self.betas = np.array([])
+        self.errors = np.array([])
 
     def fit(
         self,
@@ -46,8 +48,26 @@ class LogisticRegression:
 
         self.n_classes = n_classes
         self.betas = betas
+        self.errors = np.sqrt(self._second_deriv(X_with_bias, betas, n_classes).diagonal())
 
-    def _check_convergence(self, losses, tol):
+    def get_coefficients_and_errors(
+        self
+    ) -> Tuple[np.array, np.array]:
+        """
+        Computes the standard error for each coefficient and returns the coefficients with their errors.
+
+        Returns:
+            Tuple[np.array, np.array]: The arrays of parameters and standard errors.
+        """
+        return (self.betas, self.errors)
+
+
+
+    def _check_convergence(
+        self,
+        losses: List[float],
+        tol: float
+    ) -> bool:
         if len(losses) <= 1:
             return False
         elif losses[-1] > losses[-2]:
@@ -57,7 +77,11 @@ class LogisticRegression:
             # Tolerance reached
             return True
 
-    def _loss(self, y, logits):
+    def _loss(
+        self,
+        y: np.array,
+        logits: np.array
+    ) -> float:
         return cross_entropy(y, logits)
 
     def predict(
