@@ -17,7 +17,8 @@ class LogisticRegression:
     def fit(
         self,
         X: np.array,
-        y: np.array
+        y: np.array,
+        tol: float = 1.e-3
     ):
         """
         Fits the logistic regression model by performing Newton-Raphson optimisation of the parameters.
@@ -26,15 +27,15 @@ class LogisticRegression:
         Args:
             X (np.array): The features as an array of shape (n_samples, n_features)
             y (np.array): The targets as an array of shape (n_samples)
+            tol  (float): The tolerance on the loss used for stopping criteria in training
         """
         n_classes = len(np.unique(y))
         N = y.shape[0]
 
         X_with_bias = np.insert(X, 0, 1, axis=1)
 
-        betas = np.zeros(( X_with_bias.shape[1], (n_classes - 1), )) + 0.01 # Not exactly zero to avoid singular matrix in Newton step
+        betas = np.zeros(( X_with_bias.shape[1], (n_classes - 1), )) + 0.001 # Not exactly zero to avoid singular matrix in Newton step
 
-        tol = 1.e-3
         losses = []
         has_converged = False
         while not has_converged:
@@ -48,7 +49,7 @@ class LogisticRegression:
 
         self.n_classes = n_classes
         self.betas = betas
-        self.errors = np.sqrt(self._second_deriv(X_with_bias, betas, n_classes).diagonal())
+        self.errors = np.sqrt(-1 * np.linalg.pinv(self._second_deriv(X_with_bias, betas, n_classes, N)).diagonal())
 
     def get_coefficients_and_errors(
         self
@@ -61,8 +62,6 @@ class LogisticRegression:
         """
         return (self.betas, self.errors)
 
-
-
     def _check_convergence(
         self,
         losses: List[float],
@@ -72,7 +71,7 @@ class LogisticRegression:
             return False
         elif losses[-1] > losses[-2]:
             # Loss increasing
-            return True
+            return True 
         elif losses[-2] - losses[-1] < tol:
             # Tolerance reached
             return True
