@@ -60,7 +60,7 @@ class LogisticRegression:
         Returns:
             Tuple[np.array, np.array]: The arrays of parameters and standard errors.
         """
-        return (self.betas, self.errors)
+        return (-self.betas, self.errors)
 
     def _check_convergence(
         self,
